@@ -14,5 +14,3 @@ To install, clone this repository into the `ComfyUI/custom_nodes` folder with:
 ```sh
 git clone https://github.com/Goktug/comfyui-saveimage-plus
 ```
-
-This update reflects the new feature allowing the removal of metadata from saved images.
