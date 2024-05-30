@@ -6,10 +6,9 @@ import os
 from PIL import Image, ExifTags
 from PIL.PngImagePlugin import PngInfo
 
-class SaveImageExtended:
+class SaveImagePlus:
     def __init__(self):
         pass
-
 
     FILE_TYPE_PNG = "PNG"
     FILE_TYPE_JPEG = "JPEG"
@@ -20,7 +19,6 @@ class SaveImageExtended:
     OUTPUT_NODE = True
     CATEGORY = "image"
 
-
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -28,13 +26,12 @@ class SaveImageExtended:
                 "images": ("IMAGE", ),
                 "filename_prefix": ("STRING", {"default": "ComfyUI"}),
                 "file_type": ([s.FILE_TYPE_PNG, s.FILE_TYPE_JPEG, s.FILE_TYPE_WEBP_LOSSLESS, s.FILE_TYPE_WEBP_LOSSY], ),
+                "remove_metadata": ("BOOL", {"default": False}),
             },
             "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"},
         }
 
-
-
-    def save_images(self, images, filename_prefix="ComfyUI", file_type=FILE_TYPE_PNG, prompt=None, extra_pnginfo=None):
+    def save_images(self, images, filename_prefix="ComfyUI", file_type=FILE_TYPE_PNG, remove_metadata=False, prompt=None, extra_pnginfo=None):
         output_dir = folder_paths.get_output_directory()
         full_output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(filename_prefix, output_dir, images[0].shape[1], images[0].shape[0])
         extension = {
@@ -52,7 +49,7 @@ class SaveImageExtended:
             kwargs = dict()
             if extension == "png":
                 kwargs["compress_level"] = 4
-                if not args.disable_metadata:
+                if not remove_metadata and not args.disable_metadata:
                     metadata = PngInfo()
                     if prompt is not None:
                         metadata.add_text("prompt", json.dumps(prompt))
@@ -65,7 +62,7 @@ class SaveImageExtended:
                     kwargs["lossless"] = True
                 else:
                     kwargs["quality"] = 90
-                if not args.disable_metadata:
+                if not remove_metadata and not args.disable_metadata:
                     metadata = {}
                     if prompt is not None:
                         metadata["prompt"] = prompt
@@ -74,7 +71,6 @@ class SaveImageExtended:
                     exif = img.getexif()
                     exif[ExifTags.Base.UserComment] = json.dumps(metadata)
                     kwargs["exif"] = exif.tobytes()
-
 
             file = f"{filename}_{counter:05}_.{extension}"
             img.save(os.path.join(full_output_folder, file), **kwargs)
@@ -87,13 +83,12 @@ class SaveImageExtended:
 
         return { "ui": { "images": results } }
 
-
 NODE_CLASS_MAPPINGS = {
-    "SaveImageExtended": SaveImageExtended
+    "SaveImagePlus": SaveImagePlus
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SaveImageExtended": "Save Image (Extended)"
+    "SaveImagePlus": "Save Image Plus"
 }
 
 WEB_DIRECTORY = "web"
