@@ -1,8 +1,7 @@
 # Save Image Plus
 
 - This custom node is largely identical to the usual Save Image but allows saving images also in JPEG and WEBP formats, the latter with both lossless and lossy compression.
-- Metadata is embedded in the images as usual, and the resulting images can be used to load a workflow.
-- Added an option to remove metadata from the saved images.
+- Metadata is embedded in the images for loading workflows. An option to remove metadata is available and can be overridden from the node; otherwise, it defaults to the ComfyUI arguments.
 
 ![Screenshot 2024-05-30 at 10 06 54](https://github.com/Goktug/comfyui-saveimage-plus/assets/534426/d08bb984-911e-4a3c-a5cc-7a069cdc7005)
 
