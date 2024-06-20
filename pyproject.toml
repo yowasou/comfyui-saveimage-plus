@@ -9,6 +9,6 @@ Repository = "https://github.com/Goktug/comfyui-saveimage-plus"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "goktug"
 DisplayName = "comfyui-saveimage-plus"
 Icon = ""
