@@ -5,6 +5,7 @@ import numpy
 import os
 from PIL import Image, ExifTags
 from PIL.PngImagePlugin import PngInfo
+from pathlib import Path
 
 class SaveImagePlus:
     def __init__(self):
@@ -47,6 +48,7 @@ class SaveImagePlus:
             img = Image.fromarray(numpy.clip(array, 0, 255).astype(numpy.uint8))
 
             kwargs = dict()
+            positive = ""
             if extension == "png":
                 kwargs["compress_level"] = 4
                 if not remove_metadata and not args.disable_metadata:
@@ -73,17 +75,23 @@ class SaveImagePlus:
                     kwargs["exif"] = exif.tobytes()
                     # JSON を辞書に変換
                     data = json.loads(exif[ExifTags.Base.UserComment])
-                    # "masterpiece" を含む属性を抽出
-                    positive = next(find_masterpiece_strings(data), None)
-                    kwargs["exif"] = positive.encode("utf-8", errors="ignore")
-                    exkwargs = kwargs
+                    #positive = next(find_strings("masterpiece", data), None)
+                    positive = "masterpiece"
+                    negative = next(find_strings("worst quality", data), None)
+                    modelinfo = "Steps: 25, Sampler: Euler a, Schedule type: Automatic, CFG scale: 9, Seed: 2091500556, Size: 512x768, Model hash: 1ad6ca7f70, Model: waiNSFWIllustrious_v100, Clip skip: 2, Lora hashes: \"selma_IL_V1: b2fa622e4df7\", Version: f2.0.1v1.10.1-previous-595-g393a0f2a"
+                    current_path = Path.cwd()
+                    print(current_path)
 
             file = f"{filename}_{counter:05}_.{extension}"
             img.save(os.path.join(full_output_folder, file), **kwargs)
             # add exfile
-            exfile = f"{filename}_exfile{counter:05}_.{extension}"
-            img.save(os.path.join(full_output_folder, exfile), **exkwargs)
-
+            if (positive != ""):
+                sUserComment = positive + "\n" + "Negative prompt: " + negative + "\n" + modelinfo
+                exif[ExifTags.Base.UserComment] = sUserComment.encode("utf-16")
+                kwargs["exif"] = exif.tobytes()
+                exfile = f"{filename}_exfile{counter:05}_.{extension}"
+                img.save(os.path.join(full_output_folder, exfile), **kwargs)
+            
             results.append({
                 "filename": file,
                 "subfolder": subfolder,
@@ -91,17 +99,17 @@ class SaveImagePlus:
             })
             counter += 1
 
-        return { "ui": { "images": results, "positive": positive} }
+        return { "ui": { "images": results, "strings": positive} }
 
-def find_masterpiece_strings(data):
+def find_strings(s, data):
     #再帰的に 'masterpiece' を含む文字列を探すジェネレータ
     if isinstance(data, dict):
         for v in data.values():
-            yield from find_masterpiece_strings(v)
+            yield from find_strings(s, v)
     elif isinstance(data, list):
         for item in data:
-            yield from find_masterpiece_strings(item)
-    elif isinstance(data, str) and "masterpiece" in data:
+            yield from find_strings(s, item)
+    elif isinstance(data, str) and s in data:
         yield data
     
 NODE_CLASS_MAPPINGS = {
